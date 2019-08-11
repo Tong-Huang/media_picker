@@ -1,5 +1,8 @@
 import Flutter
 import UIKit
+import Photos
+
+typealias AssetDict = [String: AnyObject]
 
 public class SwiftMediaPickerPlugin: NSObject, FlutterPlugin {
   var imageInfos = [AssetDict]()
@@ -82,12 +85,22 @@ public class SwiftMediaPickerPlugin: NSObject, FlutterPlugin {
     
     if imageDict[id] != nil {
       asset = imageDict[id]!
-      let options: PHContentEditingInputRequestOptions = PHContentEditingInputRequestOptions()
-      options.canHandleAdjustmentData = {(adjustmeta: PHAdjustmentData) -> Bool in
-        return true
-      }
-      asset!.requestContentEditingInput(with: options, completionHandler: {(contentEditingInput: PHContentEditingInput?, info: [AnyHashable : Any]) -> Void in
-        result(contentEditingInput!.fullSizeImageURL?.absoluteString)
+
+      let requestOptions = PHImageRequestOptions()
+      requestOptions.isSynchronous = true
+      requestOptions.resizeMode = .fast
+      requestOptions.deliveryMode = .highQualityFormat;
+      
+      PHImageManager.default().requestImage(for: asset!, targetSize: CGSize(width: asset!.pixelWidth, height: asset!.pixelHeight), contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, info) -> Void in
+        let imageName = (info!["PHImageFileURLKey"] as! NSURL).lastPathComponent
+        if let imageData = UIImageJPEGRepresentation(image!, 1) as NSData? {
+          let filePath = NSHomeDirectory().appending("/Documents/").appending(imageName!)
+          if !FileManager.default.fileExists(atPath: filePath) {
+            imageData.write(toFile: filePath, atomically: true)
+          }
+          print("fullPath=\(filePath)")
+          result(filePath)
+        }
       })
     } else if (videoDict[id] != nil) {
       asset = videoDict[id]!

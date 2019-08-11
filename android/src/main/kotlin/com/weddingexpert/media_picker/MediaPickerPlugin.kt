@@ -1,17 +1,35 @@
 package com.weddingexpert.media_picker
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.ThumbnailUtils
+import android.os.Build
+import android.provider.MediaStore
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import net.kmxz.votive.Votive
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 
-class MediaPickerPlugin: MethodCallHandler {
+const val REQUEST_CODE_MIN = 6910
+const val REQUEST_CODE_MAX = 7910
+typealias Asset = HashMap<String, Any>
+typealias AssetsMap = HashMap<String, HashMap<String, Any>>
+typealias AssetsList = ArrayList<HashMap<String, Any>>
+
+class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
   companion object {
     @JvmStatic
     fun registerWith(registrar: Registrar) {
       val channel = MethodChannel(registrar.messenger(), "media_picker")
-      channel.setMethodCallHandler(MediaPickerPlugin())
+      channel.setMethodCallHandler(MediaPickerPlugin(registrar))
     }
   }
 

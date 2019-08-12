@@ -125,10 +125,10 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
       var w = width?.toInt()
       var h = height?.toInt()
       if (w == null) {
-        w = bitmap!!.width
+        w = bitmap.width
       }
       if (h == null) {
-        h = bitmap!!.height
+        h = bitmap.height
       }
 
       val max = Math.max(w, h)

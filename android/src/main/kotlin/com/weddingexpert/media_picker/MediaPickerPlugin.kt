@@ -7,8 +7,7 @@ import android.graphics.BitmapFactory
 import android.media.ThumbnailUtils
 import android.os.Build
 import android.provider.MediaStore
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
+import androidx.core.app.ActivityCompat;
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -94,7 +93,7 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
 
   private fun withPermission(permission: String) = Votive<Unit, Unit> { resolve, reject ->
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (ContextCompat.checkSelfPermission(registrar.activity(), permission) != PackageManager.PERMISSION_GRANTED) {
+      if (ActivityCompat.checkSelfPermission(registrar.activity(), permission) != PackageManager.PERMISSION_GRANTED) {
         val requestCode = lastRequestCode++
         if (lastRequestCode > REQUEST_CODE_MAX) {
           lastRequestCode = REQUEST_CODE_MIN

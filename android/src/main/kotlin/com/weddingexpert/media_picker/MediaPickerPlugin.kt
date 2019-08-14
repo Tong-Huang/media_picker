@@ -135,13 +135,13 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
         val scale = 512f / max
         w = Math.round(scale * w)
         h = Math.round(scale * h)
-        bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
       }
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
+      bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
+      // bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
     } else {
       var asset = videos[id]
       bitmap = ThumbnailUtils.createVideoThumbnail(asset!!["path"] as String, MediaStore.Images.Thumbnails.MINI_KIND)
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
+      // bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
     }
     return bos.toByteArray()
   }

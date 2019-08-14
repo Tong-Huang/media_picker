@@ -11,20 +11,19 @@ class MediaItem extends StatelessWidget {
   MediaItem({this.asset, this.size});
 
   Future<void> _previewAssetDetail(BuildContext context) async {
-    final String path = await MediaPicker.getAssetPath(this.asset.id);
+    final String path = await MediaPicker.getAssetPath(asset.id);
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              MediaPreviewPage(type: this.asset.type, path: path),
+          builder: (context) => MediaPreviewPage(type: asset.type, path: path),
         ));
   }
 
   @override
   Widget build(BuildContext context) {
     String text = '';
-    if (this.asset.type == AssetType.video) {
-      double duration = this.asset.duration.toDouble() ?? 0.0;
+    if (asset.type == AssetType.video) {
+      double duration = asset.duration.toDouble() ?? 0.0;
       duration /= 1000; //convert to seconds
       int minutes = (duration / 60).round();
       int seconds = (duration % 60).round();
@@ -32,39 +31,46 @@ class MediaItem extends StatelessWidget {
       String secondsTxt = seconds > 10 ? "$seconds" : "0$seconds";
       text = '$minutesTxt:$secondsTxt';
     }
+    if (asset.thumbData != null) {
+      return _buildItem(context, asset.thumbData, text);
+    }
     return FutureBuilder<Uint8List>(
-      future: MediaPicker.getThumbData(this.asset.id,
+      future: MediaPicker.getThumbData(asset.id,
           width: size.width, height: size.height),
       builder: (BuildContext context, AsyncSnapshot<Uint8List> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.data != null) {
-          return InkWell(
-            onTap: () => _previewAssetDetail(context), // preview later
-            child: Stack(
-              children: <Widget>[
-                Image.memory(
-                  snapshot.data,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-                IgnorePointer(
-                  child: Container(
-                    alignment: Alignment.bottomRight,
-                    child: Text(
-                      '$text',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
+          return _buildItem(context, snapshot.data, text);
         }
         return Center(
           child: CircularProgressIndicator(),
         );
       },
+    );
+  }
+
+  InkWell _buildItem(BuildContext context, Uint8List thumbData, String text) {
+    return InkWell(
+      onTap: () => _previewAssetDetail(context), // preview later
+      child: Stack(
+        children: <Widget>[
+          Image.memory(
+            thumbData,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          IgnorePointer(
+            child: Container(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                '$text',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

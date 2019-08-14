@@ -1,14 +1,14 @@
 part of './media_picker.dart';
 
 class AssetCache {
-  static final LRUCache<String, Uint8List> _map = LRUCache(maxSize: 128);
+  static final LRUCache<String, dynamic> _map = LRUCache(maxSize: 128);
 
-  static Uint8List getData(String hashCode) {
-    return _map.get(hashCode);
+  static T getData<T>(String cacheKey) {
+    return _map.get(cacheKey);
   }
 
-  static void setData(String hashCode, Uint8List list) {
-    _map.put(hashCode, list);
+  static void setData<T>(String cacheKey, T list) {
+    _map.put(cacheKey, list);
   }
 }
 

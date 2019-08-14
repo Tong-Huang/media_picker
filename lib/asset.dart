@@ -20,6 +20,10 @@ class Asset {
     this.type,
   });
 
+  Uint8List get thumbData {
+    return AssetCache.getData(id);
+  }
+
   factory Asset.fromJson(Map<dynamic, dynamic> json) => Asset(
         id: json['id'] == null ? null : json['id'],
         width: json['width'] == null ? null : json['width'],

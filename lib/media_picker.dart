@@ -15,13 +15,22 @@ class MediaPicker {
     return hasPermission;
   }
 
+  static List<Asset> getImagesFromCache() {
+    return AssetCache.getData('images');
+  }
+
   static Future<List<Asset>> getImages() async {
     final List<Asset> assets = [];
     final List<dynamic> images = await _channel.invokeMethod('getImages');
     for (var image in images) {
       assets.add(Asset.fromJson(image));
     }
+    AssetCache.setData('images', assets);
     return assets;
+  }
+
+  static List<Asset> getVideosFromCache() {
+    return AssetCache.getData('videos');
   }
 
   static Future<List<Asset>> getVideos() async {
@@ -30,6 +39,7 @@ class MediaPicker {
     for (var video in videos) {
       assets.add(Asset.fromJson(video));
     }
+    AssetCache.setData('videos', assets);
     return assets;
   }
 
@@ -41,7 +51,7 @@ class MediaPicker {
 
   static Future<Uint8List> getThumbData(String assetId,
       {double width, double height}) async {
-    Uint8List assetCache = AssetCache.getData(assetId);
+    var assetCache = AssetCache.getData<Uint8List>(assetId);
     if (assetCache == null) {
       assetCache = await _channel.invokeMethod('getThumbData', {
         'id': assetId,

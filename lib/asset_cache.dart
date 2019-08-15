@@ -1,7 +1,7 @@
 part of './media_picker.dart';
 
 class AssetCache {
-  static final LRUCache<String, dynamic> _map = LRUCache(maxSize: 128);
+  static final LRUCache<String, dynamic> _map = LRUCache(maxSize: 512);
 
   static T getData<T>(String cacheKey) {
     return _map.get(cacheKey);

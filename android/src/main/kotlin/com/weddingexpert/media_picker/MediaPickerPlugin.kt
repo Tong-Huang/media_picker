@@ -81,7 +81,7 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
 
   // check permission
   private fun requestPermission(result: Result) {
-    withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+    withPermission(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
       .thenSimple {
         result.success(true)
       }
@@ -91,15 +91,22 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
   }
 
 
-  private fun withPermission(permission: String) = Votive<Unit, Unit> { resolve, reject ->
+  private fun withPermission(permissions: Array<String>) = Votive<Unit, Unit> { resolve, reject ->
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (ActivityCompat.checkSelfPermission(registrar.activity(), permission) != PackageManager.PERMISSION_GRANTED) {
+      var requirePermissions = arrayListOf<String>()
+      for (permission in permissions) {
+        if (ActivityCompat.checkSelfPermission(registrar.activity(), permission) != PackageManager.PERMISSION_GRANTED) {
+          requirePermissions.add(permission)
+        }
+      }
+
+      if (requirePermissions.isNotEmpty()) {
         val requestCode = lastRequestCode++
         if (lastRequestCode > REQUEST_CODE_MAX) {
           lastRequestCode = REQUEST_CODE_MIN
         }
         permissionCallbacks[requestCode] = Pair(resolve, reject)
-        ActivityCompat.requestPermissions(registrar.activity(), arrayOf(permission), requestCode)
+        ActivityCompat.requestPermissions(registrar.activity(), requirePermissions.toArray() as Array<out String>, requestCode)
       } else {
         resolve(Unit)
       }
@@ -123,11 +130,12 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
 
       var w = width?.toInt()
       var h = height?.toInt()
-      if (w == null) {
+      if (w == null || h == null) {
         w = bitmap.width
-      }
-      if (h == null) {
         h = bitmap.height
+      } else {
+        val scale = 1.0 * bitmap.width / bitmap.height
+        h = Math.round(w / scale).toInt()
       }
 
       val max = Math.max(w, h)
@@ -135,13 +143,13 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
         val scale = 512f / max
         w = Math.round(scale * w)
         h = Math.round(scale * h)
-        bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
       }
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
+      bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
+      bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
     } else {
       var asset = videos[id]
       bitmap = ThumbnailUtils.createVideoThumbnail(asset!!["path"] as String, MediaStore.Images.Thumbnails.MINI_KIND)
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
+      bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
     }
     return bos.toByteArray()
   }

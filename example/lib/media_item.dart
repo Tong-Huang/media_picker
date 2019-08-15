@@ -35,8 +35,7 @@ class MediaItem extends StatelessWidget {
       return _buildItem(context, asset.thumbData, text);
     }
     return FutureBuilder<Uint8List>(
-      future: MediaPicker.getThumbData(asset.id,
-          width: size.width, height: size.height),
+      future: MediaPicker.getThumbData(asset.id, width: 288, height: 288),
       builder: (BuildContext context, AsyncSnapshot<Uint8List> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.data != null) {

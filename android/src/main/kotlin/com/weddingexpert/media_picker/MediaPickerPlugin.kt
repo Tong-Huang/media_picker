@@ -81,7 +81,7 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
 
   // check permission
   private fun requestPermission(result: Result) {
-    withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+    withPermission(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
       .thenSimple {
         result.success(true)
       }
@@ -91,15 +91,22 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
   }
 
 
-  private fun withPermission(permission: String) = Votive<Unit, Unit> { resolve, reject ->
+  private fun withPermission(permissions: Array<String>) = Votive<Unit, Unit> { resolve, reject ->
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (ActivityCompat.checkSelfPermission(registrar.activity(), permission) != PackageManager.PERMISSION_GRANTED) {
+      var requirePermissions = arrayListOf<String>()
+      for (permission in permissions) {
+        if (ActivityCompat.checkSelfPermission(registrar.activity(), permission) != PackageManager.PERMISSION_GRANTED) {
+          requirePermissions.add(permission)
+        }
+      }
+
+      if (requirePermissions.isNotEmpty()) {
         val requestCode = lastRequestCode++
         if (lastRequestCode > REQUEST_CODE_MAX) {
           lastRequestCode = REQUEST_CODE_MIN
         }
         permissionCallbacks[requestCode] = Pair(resolve, reject)
-        ActivityCompat.requestPermissions(registrar.activity(), arrayOf(permission), requestCode)
+        ActivityCompat.requestPermissions(registrar.activity(), requirePermissions.toArray() as Array<out String>, requestCode)
       } else {
         resolve(Unit)
       }

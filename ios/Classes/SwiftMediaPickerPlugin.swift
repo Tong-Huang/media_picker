@@ -138,7 +138,7 @@ public class SwiftMediaPickerPlugin: NSObject, FlutterPlugin {
     }
     
     let w = width == nil ? asset!.pixelWidth : Int(width!)
-    let h = height == nil ? asset!.pixelHeight : Int(height!)
+    var h = height == nil ? asset!.pixelHeight : Int(height!)
     
     var targetSize = CGSize(width: w, height: h)
     let maxValue = max(asset!.pixelWidth, asset!.pixelHeight)

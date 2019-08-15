@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:media_picker/helper/mutex.dart';
 
 part './asset.dart';
 part './asset_cache.dart';
@@ -51,6 +52,7 @@ class MediaPicker {
 
   static Future<Uint8List> getThumbData(String assetId,
       {double width, double height}) async {
+    await Mutex.lock();
     var assetCache = AssetCache.getData<Uint8List>(assetId);
     if (assetCache == null) {
       assetCache = await _channel.invokeMethod('getThumbData', {
@@ -60,6 +62,7 @@ class MediaPicker {
       });
       AssetCache.setData(assetId, assetCache);
     }
+    await Mutex.unlock();
     return assetCache;
   }
 }

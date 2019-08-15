@@ -123,11 +123,12 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
 
       var w = width?.toInt()
       var h = height?.toInt()
-      if (w == null) {
+      if (w == null || h == null) {
         w = bitmap.width
-      }
-      if (h == null) {
         h = bitmap.height
+      } else {
+        val scale = 1.0 * bitmap.width / bitmap.height
+        h = Math.round(w / scale).toInt()
       }
 
       val max = Math.max(w, h)
@@ -135,13 +136,13 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
         val scale = 512f / max
         w = Math.round(scale * w)
         h = Math.round(scale * h)
-        bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
       }
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
+      bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
+      bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
     } else {
       var asset = videos[id]
       bitmap = ThumbnailUtils.createVideoThumbnail(asset!!["path"] as String, MediaStore.Images.Thumbnails.MINI_KIND)
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, bos)
+      bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
     }
     return bos.toByteArray()
   }

@@ -106,10 +106,9 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
           lastRequestCode = REQUEST_CODE_MIN
         }
         permissionCallbacks[requestCode] = Pair(resolve, reject)
-        ActivityCompat.requestPermissions(registrar.activity(), requirePermissions.toArray() as Array<out String>, requestCode)
-      } else {
-        resolve(Unit)
+        ActivityCompat.requestPermissions(registrar.activity(), permissions, requestCode)
       }
+      resolve(Unit)
     } else {
       resolve(Unit)
     }
@@ -127,30 +126,29 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
       if (bitmap == null) {
         return null
       }
-
-      var w = width?.toInt()
-      var h = height?.toInt()
-      if (w == null || h == null) {
-        w = bitmap.width
-        h = bitmap.height
-      } else {
-        val scale = 1.0 * bitmap.width / bitmap.height
-        h = Math.round(w / scale).toInt()
-      }
-
-      val max = Math.max(w, h)
-      if (max > 512) {
-        val scale = 512f / max
-        w = Math.round(scale * w)
-        h = Math.round(scale * h)
-      }
-      bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
     } else {
       var asset = videos[id]
       bitmap = ThumbnailUtils.createVideoThumbnail(asset!!["path"] as String, MediaStore.Images.Thumbnails.MINI_KIND)
-      bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
     }
+
+    var w = width?.toInt()
+    var h = height?.toInt()
+    if (w == null || h == null) {
+      w = bitmap!!.width
+      h = bitmap!!.height
+    } else {
+      val scale = 1.0 * bitmap!!.width / bitmap!!.height
+      h = Math.round(w / scale).toInt()
+    }
+
+    val max = Math.max(w, h)
+    if (max > 512) {
+      val scale = 512f / max
+      w = Math.round(scale * w)
+      h = Math.round(scale * h)
+    }
+    bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
+    bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
     return bos.toByteArray()
   }
 

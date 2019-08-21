@@ -4,10 +4,14 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.media.ThumbnailUtils
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.app.ActivityCompat;
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -15,6 +19,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import net.kmxz.votive.Votive
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 
 const val REQUEST_CODE_MIN = 6910
@@ -116,49 +121,26 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
 
 
   // thumbDataWithSize
-  private fun getThumbData(id: String, width: Double?, height: Double?): ByteArray? {
-    var bitmap: Bitmap?
-    val bos = ByteArrayOutputStream()
-    if (images.contains(id)) {
-      var asset = images[id]
-      bitmap = assetsToBitmap(asset!!["path"] as String)
+  private fun getThumbData(id: String, width: Int = 256, height: Int = 256, result: Result) {
+    var asset = images[id] ?: videos[id]
+    Glide.with(registrar.activity())
+        .asBitmap()
+        .load(File(asset!!["path"] as String))
+        .into(object : CustomTarget<Bitmap>(width, height) {
+          override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+            val bos = ByteArrayOutputStream()
+            resource.compress(Bitmap.CompressFormat.JPEG, 100, bos)
+            result.success(bos.toByteArray())
+          }
 
-      if (bitmap == null) {
-        return null
-      }
-    } else {
-      var asset = videos[id]
-      bitmap = ThumbnailUtils.createVideoThumbnail(asset!!["path"] as String, MediaStore.Images.Thumbnails.MINI_KIND)
-    }
+          override fun onLoadCleared(placeholder: Drawable?) {
+            result.success(null)
+          }
 
-    var w = width?.toInt()
-    var h = height?.toInt()
-    if (w == null || h == null) {
-      w = bitmap!!.width
-      h = bitmap!!.height
-    } else {
-      val scale = 1.0 * bitmap!!.width / bitmap!!.height
-      h = Math.round(w / scale).toInt()
-    }
-
-    val max = Math.max(w, h)
-    if (max > 512) {
-      val scale = 512f / max
-      w = Math.round(scale * w)
-      h = Math.round(scale * h)
-    }
-    bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
-    bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
-    return bos.toByteArray()
-  }
-
-  private fun assetsToBitmap(filePath: String): Bitmap? {
-    return try {
-      BitmapFactory.decodeFile(filePath)
-    } catch (e: IOException) {
-      e.printStackTrace()
-      null
-    }
+          override fun onLoadFailed(errorDrawable: Drawable?) {
+            result.success(null)
+          }
+        })
   }
 
   private fun getImages(): AssetsList {
@@ -254,9 +236,9 @@ class MediaPickerPlugin(val registrar: Registrar) : MethodCallHandler {
       }
       call.method == "getThumbData" -> {
         val id = call.argument<String>("id")
-        val width = call.argument<Double>("width")
-        val height = call.argument<Double>("height")
-        result.success(getThumbData(id!!, width, height))
+        val width = call.argument<Int>("width") ?: 256
+        val height = call.argument<Int>("height") ?: 256
+        getThumbData(id!!, width, height, result)
       }
       else -> result.notImplemented()
     }

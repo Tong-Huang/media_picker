@@ -51,18 +51,18 @@ class MediaPicker {
   }
 
   static Future<Uint8List> getThumbData(String assetId,
-      {double width, double height}) async {
-    await Mutex.lock();
+      {int width, int height}) async {
     var assetCache = AssetCache.getData<Uint8List>(assetId);
     if (assetCache == null) {
+      await Mutex.lock();
       assetCache = await _channel.invokeMethod('getThumbData', {
         'id': assetId,
         'height': height,
         'width': width,
       });
+      await Mutex.unlock();
       AssetCache.setData(assetId, assetCache);
     }
-    await Mutex.unlock();
     return assetCache;
   }
 }

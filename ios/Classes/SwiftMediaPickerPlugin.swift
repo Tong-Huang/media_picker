@@ -92,13 +92,13 @@ public class SwiftMediaPickerPlugin: NSObject, FlutterPlugin {
       requestOptions.deliveryMode = .highQualityFormat;
       
       PHImageManager.default().requestImage(for: asset!, targetSize: CGSize(width: asset!.pixelWidth, height: asset!.pixelHeight), contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, info) -> Void in
-        let imageName = (info!["PHImageFileURLKey"] as! NSURL).lastPathComponent
+        let imageName = (info!["PHImageFileURLKey"] as! NSURL).lastPathComponent!
         if let imageData = UIImageJPEGRepresentation(image!, 1) as NSData? {
-          let filePath = NSHomeDirectory().appending("/Documents/").appending(imageName!)
+          let pathPrefix = (imageName as NSString).deletingPathExtension
+          let filePath = NSHomeDirectory().appending("/Documents/").appending(pathPrefix).appending(".JPEG")
           if !FileManager.default.fileExists(atPath: filePath) {
             imageData.write(toFile: filePath, atomically: true)
           }
-          print("fullPath=\(filePath)")
           result(filePath)
         }
       })
